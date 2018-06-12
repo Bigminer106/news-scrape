@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const express = require('express');
 const cheerio = require('cheerio');
 const request = require('request');
@@ -36,8 +35,8 @@ app.get('/scrape', (req, res) => {
     if (err) throw err;
     
     $('h3 a.js_curation-click').each((i, element) => {
-      let title = $(element).text();
-      let link = $(element).attr('href');
+      var title = $(element).text();
+      var link = $(element).attr('href');
 
       if (title && link) {
         db.scrapedData.insert({
@@ -55,8 +54,8 @@ app.get('/scrape', (req, res) => {
     });
 
     $('h6 a.js_curation-click').each((i, element) => {
-      let title = $(element).text();
-      let link = $(element).attr('href');
+      var title = $(element).text();
+      var link = $(element).attr('href');
 
       if (title && link) {
         db.scrapedData.insert({
@@ -74,8 +73,8 @@ app.get('/scrape', (req, res) => {
     });
 
     $('header h1 a.js_entry-link').each((i, element) => {
-      let title = $(element).text();
-      let link = $(element).attr('href');
+      var title = $(element).text();
+      var link = $(element).attr('href');
 
       if (title && link) {
         db.scrapedData.insert({
