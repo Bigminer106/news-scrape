@@ -2,27 +2,100 @@ const mongoose = require('mongoose');
 const express = require('express');
 const cheerio = require('cheerio');
 const request = require('request');
-const handlebars = require('express-handlebars');
+const mongojs = require('mongojs');
+
+var app = express();
 
 var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
+var databaseUrl = "news-scraper";
+var collections = ["scrapedData"];
 
-mongoose.Promise = Promise;
-mongoose.connect(MONGODB_URI);
+var db = mongojs(databaseUrl, collections);
+db.on("error", error => {
+  console.log("Database Error:", error);
+});
 
-console.log('Grabbing Articles from The Onion...');
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
 
-request('https://www.theonion.com', (err, res, html) => {
-  var $ = cheerio.load(html);
-  var results = [];
+app.get('/all', (req, res) => {
+  db.scrapedData.find({}, (err, found) => {
+    if (err) {
+      throw err;
+    } else {
+      res.json(found);
+    }
+  });
+});
 
-  $('a.js_curation-click').each((i, element) => {
-    var title = $(element).text();
-    var link = $(element).children().attr('href');
+app.get('/scrape', (req, res) => {
+  request('https://www.theonion.com', (err, res, html) => {
+    var $ = cheerio.load(html);
+    
+    if (err) throw err;
+    
+    $('h3 a.js_curation-click').each((i, element) => {
+      let title = $(element).text();
+      let link = $(element).attr('href');
 
-    results.push({
-      title: title,
-      link: link
+      if (title && link) {
+        db.scrapedData.insert({
+          title: title,
+          link: link
+        },
+        (err, inserted) => {
+          if (err) {
+            throw err;
+          } else {
+            console.log(inserted);
+          }
+        });
+      }
+    });
+
+    $('h6 a.js_curation-click').each((i, element) => {
+      let title = $(element).text();
+      let link = $(element).attr('href');
+
+      if (title && link) {
+        db.scrapedData.insert({
+          title: title,
+          link: link
+        },
+        (err, inserted) => {
+          if (err) {
+            throw err;
+          } else {
+            console.log(inserted);
+          }
+        });
+      }
+    });
+
+    $('header h1 a.js_entry-link').each((i, element) => {
+      let title = $(element).text();
+      let link = $(element).attr('href');
+
+      if (title && link) {
+        db.scrapedData.insert({
+          title: title,
+          link: link
+        },
+        (err, inserted) => {
+          if (err) {
+            throw err;
+          } else {
+            console.log(inserted);
+          }
+        });
+      }
     });
   });
-  console.log(results);
+
+  res.send('Scrape Complete');
 });
+
+app.listen(3000, () => {
+  console.log('Listening on Port 3000!');
+})
